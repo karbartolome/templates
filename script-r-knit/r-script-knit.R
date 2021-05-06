@@ -15,7 +15,6 @@ library(gt)
 
 # Datos cajeros
 df <- read.csv('https://cdn.buenosaires.gob.ar/datosabiertos/datasets/cajeros-automaticos/cajeros-automaticos.csv')
-df %>% head(2) %>% gt() %>% tab_header('Cajeros automáticos en CABA')
 
 #+ echo=TRUE, fig.width=7, message=FALSE
 # Mapa barrios CABA
