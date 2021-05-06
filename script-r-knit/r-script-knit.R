@@ -5,36 +5,25 @@
 #'
 #'
 #+ echo=TRUE, fig.width=7, message=FALSE
-#  Cajeros automáticos
 library(dplyr)
 library(biscale)
 library(ggplot2)
 library(cowplot)
 library(stringr)
 library(sf)
+library(gt)
 
+# Datos cajeros
 df <- read.csv('https://cdn.buenosaires.gob.ar/datosabiertos/datasets/cajeros-automaticos/cajeros-automaticos.csv')
-df %>% 
-  group_by(banco, red) %>% 
-  summarise(n=n()) %>% 
-  ungroup() %>% 
-  slice_max(n, n=10) %>% 
-  ggplot(aes(x=reorder(banco,n),y=n, fill=red))+
-    geom_col()+
-    coord_flip()+
-    scale_fill_manual(values=c('orchid3','turquoise3'))+
-    labs(title='Cantidad de cajeros automáticos por banco', 
-         subtitle='Datos del GCBA', x='Banco',y='Cantidad de cajeros')+
-    theme_minimal()
+df %>% head(2) %>% gt() %>% tab_header('Cajeros automáticos en CABA')
 
-
+#+ echo=TRUE, fig.width=7, message=FALSE
 # Mapa barrios CABA
-
 caba <- st_read('http://cdn.buenosaires.gob.ar/datosabiertos/datasets/barrios/barrios.geojson') %>% 
   mutate(barrio=str_to_title(barrio)) 
 
 # Cantidad de cajeros por barrio
-df <- df %>% filter(localidad=='CABA') %>% 
+df_barrios <- df %>% filter(localidad=='CABA') %>% 
   group_by(barrio, red) %>% 
   summarise(n=n()) %>% 
   ungroup() %>%
@@ -43,9 +32,7 @@ df <- df %>% filter(localidad=='CABA') %>%
   mutate(BANELCO = tidyr::replace_na(BANELCO,0), 
          LINK = tidyr::replace_na(LINK,0))
 
-df_barrios <- merge(caba, df, by='barrio', all.x=TRUE, all.y=TRUE)
-
-# Data en formato biscale (quantiles)
+df_barrios <- merge(caba, df_barrios, by='barrio', all.x=TRUE, all.y=TRUE)
 
 data_biscale <- bi_class(df_barrios, 
                          x='LINK',
@@ -73,10 +60,23 @@ legend <- bi_legend(pal = "DkBlue",
                     ylab = "BANELCO",
                     size = 8)
 
-# Mapa + Legend
-mapa <- ggdraw() +
+#+ echo=TRUE, fig.width=10, message=FALSE
+ggdraw() +
   draw_plot(mapa, 0, 0, 1, 1) +
   draw_plot(legend, 0.63, 0.05, 0.2, 0.2)
 
-#+ echo=TRUE, fig.width=10, message=FALSE
-mapa
+
+
+# Cantidad de cajeros por banco
+df %>% 
+  group_by(banco, red) %>% 
+  summarise(n=n()) %>% 
+  ungroup() %>% 
+  slice_max(n, n=10) %>% 
+  ggplot(aes(x=reorder(banco,n),y=n, fill=red))+
+  geom_col()+
+  coord_flip()+
+  scale_fill_manual(values=c('orchid3','turquoise3'))+
+  labs(title='Cantidad de cajeros automáticos por banco', 
+       subtitle='Datos del GCBA', x='Banco',y='Cantidad de cajeros')+
+  theme_minimal()
