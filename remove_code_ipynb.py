@@ -5,16 +5,23 @@
 # 3) Luego de ejecutar el código se puede abrir el html descargado y ahora tenemos un informe con todos los gráficos y el texto escrito pero no aparece el código. 
 
 # Ubicación donde haya quedado almacenado el archivo que descargamos como html:
-FILE = "archivo.html" #Archivo html del cual se quiere eliminar el código
+import re
 
-with open(FILE, 'r') as html_file:
+READ_FILE = "archivo.html"
+WRITE_FILE = "archivo_nuevo.html"
+
+with open(READ_FILE, 'r', encoding = 'utf8') as html_file:
     content = html_file.read()
-    
-# Get rid off prompts and source code
-content = content.replace("div.input_area {","div.input_area {\n\tdisplay: none;")    
-content = content.replace(".prompt {",".prompt {\n\tdisplay: none;")
 
-f = open(FILE, 'w')
+# Get rid off prompts and source code
+# content = content.replace("div.input_area {","div.input_area {\n\tdisplay: none;")    
+# content = content.replace(".prompt {",".prompt {\n\tdisplay: none;")
+content = content.replace("jp-InputArea {","jp-InputArea {\n\tdisplay: none;")    
+# content = content.replace("jp-OutputArea-prompt\">Out[4]: {","-prompt {\n\tdisplay: none;")
+content = re.sub(r'>Out\[\d{1,5}]:<', '><', content)
+# jp-OutputArea-prompt">Out[4]:
+
+f = open(WRITE_FILE, 'w', encoding = 'utf8')
 f.write(content)
 f.close()
 
